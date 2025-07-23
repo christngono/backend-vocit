@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: vocit-api
+    env: node
+    plan: free
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGODB_URI
+        value: mongodb+srv://vocitbase:t0LaQ1jY3w1YBZfY@cluster0.gplsr9q.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      - key: JWT_SECRET
+        value: secret
