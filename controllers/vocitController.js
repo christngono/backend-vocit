@@ -3,8 +3,13 @@ const Vocit = require('../models/Vocit');
 // Créer un Vocit
 const createVocit = async (req, res) => {
   try {
-    const { mediaType, titre, descriptif, categorie, tags } = req.body;
-    const mediaPath = req.file ? req.file.path : '';
+  const { mediaType, titre, descriptif, categorie, tags } = req.body;
+
+// Nettoyer le chemin + créer l'URL publique
+    const mediaPath = req.file ? req.file.path.replace(/\\/g, '/') : '';
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const mediaUrl = req.file ? `${baseUrl}/${mediaPath}` : '';
+
 
     const parsedTags = typeof tags === 'string'
       ? tags.split(',').map(tag => tag.trim())
@@ -86,12 +91,27 @@ const voteVocit = async (req, res) => {
 const getAllVocits = async (req, res) => {
   try {
     const vocits = await Vocit.find().sort({ createdAt: -1 });
-    res.json({ vocits });
+
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const vocitsWithFullUrls = vocits.map(v => {
+      const vObj = v.toObject();
+      vObj.media = vObj.media?.replace(/\\/g, '/');
+
+      // Si le media n’est pas déjà une URL
+      if (vObj.media && !vObj.media.startsWith('http')) {
+        vObj.media = `${baseUrl}/${vObj.media}`;
+      }
+
+      return vObj;
+    });
+
+    res.json({ vocits: vocitsWithFullUrls });
   } catch (err) {
     console.error('Erreur getAllVocits:', err);
     res.status(500).json({ message: 'Erreur serveur.' });
   }
 };
+
 
 // Obtenir un vocit avec stats
 const getVocitWithStats = async (req, res) => {

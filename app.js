@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 require('dotenv').config();
 const cors = require('cors');
+const path = require('path');
 
 // Routes
 const adminRoutes = require('./routes/adminRoutes');
@@ -20,8 +21,8 @@ app.use(cors({
   origin: 'http://localhost:3000',
   credentials: true
 }));
-app.use('/uploads', express.static('uploads'));
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // 💡 Swagger configuration améliorée
 const swaggerOptions = {
   definition: {
