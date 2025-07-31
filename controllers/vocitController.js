@@ -86,7 +86,7 @@ const voteVocit = async (req, res) => {
 const getAllVocits = async (req, res) => {
   try {
     const vocits = await Vocit.find().sort({ createdAt: -1 });
-    res.json(vocits);
+    res.json({ vocits });
   } catch (err) {
     console.error('Erreur getAllVocits:', err);
     res.status(500).json({ message: 'Erreur serveur.' });
