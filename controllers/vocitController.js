@@ -6,8 +6,8 @@ const createVocit = async (req, res) => {
     const { mediaType, titre, descriptif, categorie, tags } = req.body;
 
     const filePath = req.file ? req.file.path.replace(/\\/g, '/') : '';
-  
-    const baseUrl = `https://${req.get('host')}`; // ⚠️ on force HTTPS ici
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    //const baseUrl = `https://${req.get('host')}`; // ⚠️ on force HTTPS ici
 
     const fullMediaUrl = req.file ? `${baseUrl}/${filePath}` : '';
 
@@ -92,7 +92,8 @@ const voteVocit = async (req, res) => {
 const getAllVocits = async (req, res) => {
   try {
     const vocits = await Vocit.find().sort({ createdAt: -1 });
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
+   
+const baseUrl = `https://${req.get('host')}`;
 
     const vocitsWithUrls = vocits.map(v => {
       const vObj = v.toObject();
