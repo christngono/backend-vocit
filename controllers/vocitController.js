@@ -1,14 +1,14 @@
 const Vocit = require('../models/Vocit');
 
 // Créer un Vocit
+
 const createVocit = async (req, res) => {
   try {
     const { mediaType, titre, descriptif, categorie, tags } = req.body;
 
-    const filePath = req.file ? req.file.path.replace(/\\/g, '/') : '';
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    //const baseUrl = `https://${req.get('host')}`; // ⚠️ on force HTTPS ici
-
+    // On construit l'URL propre en HTTPS
+    const baseUrl = `https://${req.get('host')}`;
+    const filePath = req.file ? `uploads/${req.file.filename}` : '';
     const fullMediaUrl = req.file ? `${baseUrl}/${filePath}` : '';
 
     const parsedTags = typeof tags === 'string'
@@ -19,18 +19,40 @@ const createVocit = async (req, res) => {
       titre,
       descriptif,
       mediaType,
-      media: fullMediaUrl, // <-- on enregistre l'URL complète
+      media: fullMediaUrl,
       categorie,
       tags: parsedTags,
     });
 
     await newVocit.save();
-    res.status(201).json({ message: 'Publication créée.', vocit: newVocit });
+    res.status(201).json(newVocit); // <-- retour direct de l'objet pour FlutterFlow
   } catch (err) {
     console.error('Erreur createVocit:', err);
     res.status(500).json({ message: 'Erreur serveur.' });
   }
 };
+
+// Obtenir tous les vocits
+const getAllVocits = async (req, res) => {
+  try {
+    const baseUrl = `https://${req.get('host')}`;
+    const vocits = await Vocit.find().sort({ createdAt: -1 });
+
+    const vocitsWithUrls = vocits.map(v => {
+      const vObj = v.toObject();
+      if (vObj.media && !vObj.media.startsWith('http')) {
+        vObj.media = `${baseUrl}/${vObj.media.replace(/\\/g, '/')}`;
+      }
+      return vObj;
+    });
+
+    res.json(vocitsWithUrls); // <-- tableau direct
+  } catch (err) {
+    console.error('Erreur getAllVocits:', err);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
+};
+
 
 
 // Voter ou changer son vote
@@ -87,33 +109,6 @@ const voteVocit = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur.' });
   }
 };
-
-// Obtenir tous les vocits
-const getAllVocits = async (req, res) => {
-  try {
-    const vocits = await Vocit.find().sort({ createdAt: -1 });
-   
-const baseUrl = `https://${req.get('host')}`;
-
-    const vocitsWithUrls = vocits.map(v => {
-      const vObj = v.toObject();
-
-      // Nettoyer le chemin si c’est un chemin local
-      if (vObj.media && !vObj.media.startsWith('http')) {
-        const cleanedPath = vObj.media.replace(/\\/g, '/');
-        vObj.media = `${baseUrl}/${cleanedPath}`;
-      }
-
-      return vObj;
-    });
-
-    res.json({ vocits: vocitsWithUrls });
-  } catch (err) {
-    console.error('Erreur getAllVocits:', err);
-    res.status(500).json({ message: 'Erreur serveur.' });
-  }
-};
-
 
 
 // Obtenir un vocit avec stats
