@@ -7,7 +7,8 @@ const createVocit = async (req, res) => {
     const { mediaType, titre, descriptif, categorie, tags } = req.body;
 
     // On construit l'URL propre en HTTPS
-    const baseUrl = `https://${req.get('host')}`;
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+
     const filePath = req.file ? `uploads/${req.file.filename}` : '';
     const fullMediaUrl = req.file ? `${baseUrl}/${filePath}` : '';
 
@@ -35,7 +36,9 @@ const createVocit = async (req, res) => {
 // Obtenir tous les vocits
 const getAllVocits = async (req, res) => {
   try {
-    const baseUrl = `https://${req.get('host')}`;
+   
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+
     const vocits = await Vocit.find().sort({ createdAt: -1 });
 
     const vocitsWithUrls = vocits.map(v => {
