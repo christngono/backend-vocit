@@ -15,17 +15,31 @@ const swaggerJsdoc = require('swagger-jsdoc');
 
 const app = express();
 
-// Middlewares
+// ====== MIDDLEWARES ======
 app.use(express.json());
 
+// ✅ CORS : liste des domaines autorisés
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://vocit-api.onrender.com'
+];
+
 app.use(cors({
- origin: ['http://localhost:3000', 'https://vocit-api.onrender.com', '*'],
-credentials: true
+  origin: function (origin, callback) {
+    // Autorise les requêtes sans origin (ex: Postman) ou venant des domaines autorisés
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
 
+// ✅ Dossier static pour les fichiers uploadés
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 💡 Swagger configuration améliorée
+// ====== SWAGGER DOC ======
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
@@ -35,31 +49,17 @@ const swaggerOptions = {
       description: 'Documentation Swagger pour l\'API Vocits (votes citoyens)'
     },
     servers: [
-      {
-        url: 'http://localhost:3333',
-        description: 'Serveur de développement'
-      },
-      {
-    url: 'https://vocit-api.onrender.com',
-    description: 'Serveur Render'
-  }
+      { url: 'http://localhost:3333', description: 'Serveur de développement' },
+      { url: 'https://vocit-api.onrender.com', description: 'Serveur Render' }
     ],
     components: {
       securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-        }
+        bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }
       }
     },
-    security: [
-      {
-        bearerAuth: []
-      }
-    ]
+    security: [{ bearerAuth: [] }]
   },
-  apis: ['./routes/*.js'], // 🧠 Détection automatique des annotations Swagger
+  apis: ['./routes/*.js'],
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
@@ -69,19 +69,16 @@ app.get('/swagger.json', (req, res) => {
 });
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Routes
+// ====== ROUTES ======
 app.use('/api/auth', authRoutes);
 app.use('/api/vocits', vocitRoutes);
 app.use('/api/admin', adminRoutes);
 
-// MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('✅ MongoDB connecté'))
-.catch(err => console.error('❌ Erreur MongoDB :', err));
+// ====== MONGODB ======
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('✅ MongoDB connecté'))
+  .catch(err => console.error('❌ Erreur MongoDB :', err));
 
-// Lancement du serveur
+// ====== LANCEMENT SERVEUR ======
 const PORT = process.env.PORT || 3333;
 app.listen(PORT, () => console.log(`✅ Serveur démarré sur le port ${PORT}`));
