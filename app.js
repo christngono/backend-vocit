@@ -16,12 +16,37 @@ const swaggerJsdoc = require('swagger-jsdoc');
 const app = express();
 
 // Middlewares
-app.use(express.json());
+// app.use(express.json());
+
+// app.use(cors({
+//  origin: ['http://localhost:3000', 'https://vocit-api.onrender.com', '*'],
+// credentials: true
+// }));
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://vocit-api.onrender.com',
+  'https://flutterflow.app'
+];
 
 app.use(cors({
- origin: ['http://localhost:3000', 'https://vocit-api.onrender.com', '*'],
-credentials: true
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS non autorisé'));
+    }
+  },
+  credentials: true
 }));
+
+// CORS pour les images
+app.use('/uploads', cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+
+// Statique
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
