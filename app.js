@@ -16,7 +16,7 @@ const swaggerJsdoc = require('swagger-jsdoc');
 const app = express();
 
 // Middlewares
-// app.use(express.json());
+app.use(express.json());
 
 // app.use(cors({
 //  origin: ['http://localhost:3000', 'https://vocit-api.onrender.com', '*'],
